@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 
@@ -179,8 +180,8 @@ func main() {
 			copy(lines[s.sketchStartLine+insertedLines+4:], lines[s.sketchStartLine+insertedLines:])
 			lines[s.sketchStartLine+insertedLines] = "#undef loop"
 			lines[s.sketchStartLine+insertedLines+1] = "#undef setup"
-			lines[s.sketchStartLine+insertedLines+2] = "#define " + s.setupName
-			lines[s.sketchStartLine+insertedLines+3] = "#define " + s.loopName
+			lines[s.sketchStartLine+insertedLines+2] = "#define setup " + s.setupName
+			lines[s.sketchStartLine+insertedLines+3] = "#define loop " + s.loopName
 			insertedLines += 4
 		}
 	}
@@ -192,7 +193,8 @@ func main() {
 
 	insertLine := 0
 	/* On to the template to generate main.cpp */
-	lines, err = readLines("templates/" + opts.Core + "/" + opts.Variant + ".main.template")
+	dirSelf, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+	lines, err = readLines(dirSelf + "/templates/" + opts.Core + "/" + opts.Variant + ".main.template")
 	if err != nil {
 		log.Fatalf("Read template: %s", err)
 	}
@@ -217,7 +219,7 @@ func main() {
 	insertLine++
 	lines[insertLine] = "#define NUM_SKETCHES " + strconv.Itoa(len(validSketches))
 	insertLine++
-	lines[insertLine] = "void (*func_ptr[NUM_SKETCHES][" + strconv.Itoa(len(validSketches)) + "])(void) = {"
+	lines[insertLine] = "void (*func_ptr[NUM_SKETCHES][" + strconv.Itoa(len(validSketches)*2) + "])(void) = {"
 	insertLine++
 
 	for i, s := range validSketches {
